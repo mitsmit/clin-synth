@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+.env.*
+
+# Generated outputs (created by running the pipeline / examples)
+processed_data/
+
+# Jupyter
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# Test / lint caches
+.pytest_cache/
+.ruff_cache/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

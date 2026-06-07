@@ -1,0 +1,263 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Heart Failure Domain Configuration
+# Derived from data/heart_failure.csv (299 rows, UCI Heart Failure dataset).
+# Pipeline-wide settings (model, thresholds, DP params) live in config.yaml.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Schema ───────────────────────────────────────────────────────────────────
+schema:
+  expected_columns:
+    - age
+    - anaemia
+    - creatinine_phosphokinase
+    - diabetes
+    - ejection_fraction
+    - high_blood_pressure
+    - platelets
+    - serum_creatinine
+    - serum_sodium
+    - sex
+    - smoking
+    - time
+    - DEATH_EVENT
+  categorical_columns:
+    - anaemia
+    - diabetes
+    - high_blood_pressure
+    - sex
+    - smoking
+    - DEATH_EVENT
+  columns_with_missingness: []
+
+# ── File paths ────────────────────────────────────────────────────────────────
+dp:
+  raw_stats: processed_data/heart_failure/stat_profile/heart_failure_stats.json
+  output:    processed_data/heart_failure/stat_profile/heart_failure_dp_stats.json
+
+generation:
+  output_csv:         processed_data/heart_failure/synthetic_output.csv
+  system_prompt_file: prompts/system_prompt_heart_failure.md
+  stats_file:         processed_data/heart_failure/stat_profile/heart_failure_dp_stats.json
+
+  # ── Patient archetypes — rotated per batch to force subgroup coverage ────────
+  # Each archetype skews one batch toward a clinically distinct patient profile.
+  # Rotating these prevents mode collapse and ensures rare subgroups are represented.
+  archetypes:
+
+    - name: "High mortality risk"
+      description: >
+        Patients with DEATH_EVENT=1 profile: low ejection fraction (14–30),
+        elevated serum_creatinine (>1.5, often 2–5), short follow-up time (4–60 days).
+        Age 55–80. May have anaemia=1 or high_blood_pressure=1.
+        serum_sodium often below 135 (hyponatraemia worsens prognosis).
+        creatinine_phosphokinase near dataset median (100–600) — CPK does not
+        directly predict mortality here.
+
+    - name: "Stable survivor — good cardiac function"
+      description: >
+        Patients with DEATH_EVENT=0 profile: ejection fraction 38–70,
+        serum_creatinine 0.6–1.2 (normal renal function), serum_sodium 135–145.
+        Long follow-up time (150–285 days). Age 40–75.
+        Mix of comorbidities — any combination of anaemia, diabetes, smoking,
+        high_blood_pressure is valid. platelets near mean (~263000).
+
+    - name: "Renal dysfunction"
+      description: >
+        Patients with serum_creatinine 2.0–9.4 (significant renal impairment).
+        Higher DEATH_EVENT=1 probability. ejection_fraction varies (20–50).
+        serum_sodium may drift low (125–135). anaemia=1 is more common when
+        kidneys fail. Age 55–90. time reflects severity: shorter for worse cases.
+
+    - name: "Elderly multi-morbid"
+      description: >
+        Patients age 70–95 with multiple comorbidities: anaemia=1, diabetes=1,
+        high_blood_pressure=1. ejection_fraction 25–50, serum_creatinine 1.0–3.0.
+        DEATH_EVENT split reflects dataset base rate (~32% died).
+        serum_sodium 130–142. Vary smoking status and follow-up time broadly.
+
+    - name: "CPK outlier — acute event"
+      description: >
+        Patients with creatinine_phosphokinase > 1500 (top ~10% of dataset;
+        extreme values up to 7861 in ~5%). This CPK spike signals acute myocardial
+        injury. Other values near typical ranges: ejection_fraction 20–55,
+        serum_creatinine 0.8–2.5. Age 45–75. DEATH_EVENT follows base rate.
+        Include a few extreme CPK rows (>3000) per batch.
+
+validation:
+  synthetic_csv:      processed_data/heart_failure/synthetic_output.csv
+  seed_stats_json:    processed_data/heart_failure/stat_profile/heart_failure_stats.json
+  seed_csv:           data/heart_failure.csv
+  output_report:      hf_validation_report.json
+  expected_row_count: 299
+  quasi_id_cols:
+    - age
+    - sex
+    - smoking
+  privacy_tests:
+    qi_cols_linkage:
+      - age
+      - sex
+      - smoking
+
+# ── TSTR (Train-on-Synthetic / Test-on-Real) ─────────────────────────────────
+tstr:
+  target_column: DEATH_EVENT
+  target_order:  [0, 1]
+
+# ── Clinical plausibility ─────────────────────────────────────────────────────
+clinical_plausibility:
+  column_bounds:
+    age:                       [40, 95]
+    creatinine_phosphokinase:  [0, null]
+    ejection_fraction:         [1, 100]
+    platelets:                 [0, null]
+    serum_creatinine:          [0.1, null]
+    serum_sodium:              [100, 160]
+    time:                      [1, null]
+
+  correlation_pairs:
+    - [serum_creatinine, serum_sodium,    "renal dysfunction → electrolyte imbalance (inverse, but flagged if both drift)"]
+    - [ejection_fraction, time,           "better cardiac function → longer observed survival window"]
+
+  rules:
+    # ── Binary flags ─────────────────────────────────────────────────────────
+    - name:        anaemia_binary
+      description: "Anaemia must be 0 or 1"
+      column:      anaemia
+      operator:    in
+      value:       [0, 1]
+      severity:    HIGH
+
+    - name:        diabetes_binary
+      description: "Diabetes must be 0 or 1"
+      column:      diabetes
+      operator:    in
+      value:       [0, 1]
+      severity:    HIGH
+
+    - name:        high_blood_pressure_binary
+      description: "High blood pressure must be 0 or 1"
+      column:      high_blood_pressure
+      operator:    in
+      value:       [0, 1]
+      severity:    HIGH
+
+    - name:        sex_binary
+      description: "Sex must be 0 (female) or 1 (male)"
+      column:      sex
+      operator:    in
+      value:       [0, 1]
+      severity:    HIGH
+
+    - name:        smoking_binary
+      description: "Smoking must be 0 or 1"
+      column:      smoking
+      operator:    in
+      value:       [0, 1]
+      severity:    HIGH
+
+    - name:        death_event_binary
+      description: "DEATH_EVENT must be 0 or 1"
+      column:      DEATH_EVENT
+      operator:    in
+      value:       [0, 1]
+      severity:    CRITICAL
+
+    # ── Ejection fraction ────────────────────────────────────────────────────
+    - name:        ejection_fraction_range
+      description: "Ejection fraction is a percentage — must be between 1 and 100"
+      column:      ejection_fraction
+      operator:    between
+      value:       [1, 100]
+      severity:    CRITICAL
+
+    # ── Serum sodium ─────────────────────────────────────────────────────────
+    - name:        serum_sodium_physiological
+      description: "Serum sodium outside physiological range (100–160 mEq/L)"
+      column:      serum_sodium
+      operator:    between
+      value:       [100, 160]
+      severity:    HIGH
+
+    # ── Serum creatinine ─────────────────────────────────────────────────────
+    - name:        serum_creatinine_positive
+      description: "Serum creatinine must be positive"
+      column:      serum_creatinine
+      operator:    ">"
+      value:       0
+      severity:    CRITICAL
+
+    - name:        serum_creatinine_cap
+      description: "Serum creatinine implausibly high (> 9.4 observed max in dataset)"
+      column:      serum_creatinine
+      operator:    "<="
+      value:       9.4
+      severity:    HIGH
+
+    # ── Creatinine phosphokinase (CPK) ───────────────────────────────────────
+    - name:        cpk_nonnegative
+      description: "CPK enzyme level cannot be negative"
+      column:      creatinine_phosphokinase
+      operator:    ">="
+      value:       0
+      severity:    CRITICAL
+
+    # ── Platelets ────────────────────────────────────────────────────────────
+    - name:        platelets_positive
+      description: "Platelet count must be positive"
+      column:      platelets
+      operator:    ">"
+      value:       0
+      severity:    CRITICAL
+
+    # ── Age ──────────────────────────────────────────────────────────────────
+    - name:        age_range
+      description: "Age within observed dataset range (40–95)"
+      column:      age
+      operator:    between
+      value:       [40, 95]
+      severity:    HIGH
+
+    # ── Follow-up time ───────────────────────────────────────────────────────
+    - name:        time_positive
+      description: "Follow-up period must be at least 1 day"
+      column:      time
+      operator:    ">="
+      value:       1
+      severity:    CRITICAL
+
+  group_comparison_rules:
+    # Deceased patients should have lower ejection fraction (key HF mortality predictor)
+    - name:               death_ejection_fraction
+      description:        "Patients who died (DEATH_EVENT=1) should have lower mean
+                           ejection fraction than survivors"
+      severity:           HIGH
+      group_column:       DEATH_EVENT
+      group_a:            1
+      group_b:            0
+      metric_column:      ejection_fraction
+      metric_type:        mean
+      expected_direction: "<"
+
+    # Deceased patients should have higher serum creatinine (renal impairment → mortality)
+    - name:               death_serum_creatinine
+      description:        "Patients who died expected to have higher mean serum creatinine
+                           — renal dysfunction is a strong heart failure mortality predictor"
+      severity:           HIGH
+      group_column:       DEATH_EVENT
+      group_a:            1
+      group_b:            0
+      metric_column:      serum_creatinine
+      metric_type:        mean
+      expected_direction: ">"
+
+    # Anaemic patients should have lower serum sodium on average
+    - name:               anaemia_serum_sodium
+      description:        "Anaemic patients tend to show lower serum sodium (haemodilution)"
+      severity:           MEDIUM
+      group_column:       anaemia
+      group_a:            1
+      group_b:            0
+      metric_column:      serum_sodium
+      metric_type:        mean
+      expected_direction: "<="

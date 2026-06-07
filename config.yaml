@@ -1,0 +1,69 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Synthetic Data Pipeline — Pipeline Configuration
+# Domain-specific settings (schema, file paths, clinical rules) live in
+# domains/<condition>.yaml  (e.g. domains/diabetes.yaml, domains/kidney.yaml)
+# Used by: scripts/generate.py  scripts/validate.py
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Differential Privacy (dp_statistics.py) ──────────────────────────────────
+dp:
+  epsilon: 1.0    # privacy budget (0.1=strong, 1.0=moderate, 10.0=weak)
+  seed:    42     # RNG seed for reproducible noise (null = random)
+
+# ── LLM Backend ───────────────────────────────────────────────────────────────
+# backend: openai | ollama
+# ollama_base_url: Ollama OpenAI-compatible endpoint (ignored when backend=openai)
+llm:
+  backend:         openai
+  ollama_base_url: http://localhost:11434/v1
+
+# ── Generation (generate.py) ──────────────────────────────────────────────────
+generation:
+  total_rows:            3000
+  batch_size:            50
+  model:                 gpt-4o-mini
+  max_completion_tokens: 15000  # max tokens the model can generate per API response
+  temperature:           0.7    # diversity control (0=deterministic, 1=max variety)
+  min_batch_yield:       0.9    # retry a batch if fewer than this fraction of rows returned
+  max_retries:           3
+  retry_delay:           2.0
+  max_workers:           5
+
+# ── Validation (validate.py) ──────────────────────────────────────────────────
+validation:
+  # LLM deep-analysis settings
+  run_llm:                   true
+  llm_model:                 gpt-4o-mini
+  llm_max_completion_tokens: 4000
+
+  # Statistical thresholds
+  tolerance:                   0.05   # ±5% max proportion drift per category
+  k_anonymity_threshold:       5      # min group size for quasi-identifier combos
+  correlation_drift_threshold: 0.15   # max allowed delta in Cramér's V vs seed
+  leakage_rate_threshold:      0.01   # flag if >1% of synthetic rows match seed exactly
+  cardinality_ratio_threshold: 1.2    # flag if synth unique values > seed unique * this
+
+  # Privacy tests (MIA, record linkage, nearest-neighbor similarity)
+  run_privacy_tests: true
+  privacy_tests:
+    mia_sample_size:        2000  # rows sampled from seed train/holdout splits
+    mia_auc_threshold:      0.60  # AUC above this flags membership inference risk
+    dcr_ratio_threshold:    0.80  # dcr_synth/dcr_holdout below this flags memorisation
+    nndr_threshold:         0.20  # NNDR mean below this flags re-id risk
+    linkage_risk_threshold: 0.05  # unique linkage rate above this flags re-id risk
+
+# ── Run (pipeline entry-point defaults) ───────────────────────────────────────
+# All parameters for `llm-synth run` can be set here so the pipeline is fully
+# reproducible from config alone.  CLI flags override these values when provided.
+#
+# Usage (config-only):   llm-synth run
+# Usage (mixed):         llm-synth run --rows 2000   # overrides run.rows below
+run:
+  seed:       data/diab_seed.csv  # path to seed CSV
+  condition:  diabetes            # condition label; auto-discovers domains/<condition>.yaml
+  output_dir: processed_data      # base output directory
+  domain:     ~                   # explicit domain YAML path (~ = auto-discover from condition)
+  epsilon:    1.0                 # DP budget ε — overrides dp.epsilon for this run
+  rows:       ~                   # synthetic rows to generate (~ = use generation.total_rows)
+  skip_tstr:  false               # set true to skip TSTR evaluation
+  skip_llm:   true                # set false to enable LLM deep-analysis in validation
