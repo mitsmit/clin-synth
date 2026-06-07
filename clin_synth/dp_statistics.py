@@ -65,7 +65,7 @@ from pathlib import Path
 
 import numpy as np
 
-from llm_synth.config import load_config, get_root as _get_root
+from clin_synth.config import load_config, get_root as _get_root
 
 logger = logging.getLogger(__name__)
 

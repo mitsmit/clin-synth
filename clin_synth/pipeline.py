@@ -30,11 +30,11 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-from llm_synth.seed_statistics import extract_seed_stats
-from llm_synth.dp_statistics import apply_dp
-from llm_synth.generate import generate_synthetic_data
-from llm_synth.validate import validate_synthetic_data, _print_report
-from llm_synth.config import load_config, get_root
+from clin_synth.seed_statistics import extract_seed_stats
+from clin_synth.dp_statistics import apply_dp
+from clin_synth.generate import generate_synthetic_data
+from clin_synth.validate import validate_synthetic_data, _print_report
+from clin_synth.config import load_config, get_root
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -76,8 +76,8 @@ def _run_tstr(
     (the diabetes schema: race, gender, age, …, readmitted).  Returns None and
     emits a warning if the schema does not match.
     """
-    import llm_synth.tstr as tstr_module
-    from llm_synth.tstr import (
+    import clin_synth.tstr as tstr_module
+    from clin_synth.tstr import (
         load_and_prepare,
         run_seed_seed,
         run_synth_synth,

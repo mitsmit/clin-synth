@@ -8,10 +8,10 @@ from typing import Any
 
 import yaml
 
-from llm_synth._paths import resolve_project_root
+from clin_synth._paths import resolve_project_root
 
 # Default: config.yaml sits one level above the package directory (project root),
-# unless LLMSYNTH_ROOT is set to point at an external project directory.
+# unless CLINSYNTH_ROOT is set to point at an external project directory.
 _DEFAULT_CONFIG = resolve_project_root(Path(__file__).resolve().parent.parent) / "config.yaml"
 
 # Default domain — diabetes.yaml is used when the caller has not called set_domain().

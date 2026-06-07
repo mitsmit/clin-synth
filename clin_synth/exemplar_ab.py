@@ -13,9 +13,9 @@ four axes:
   5. A1C / race missingness error   — |missing_rate_synth − missing_rate_seed|
 
 Usage:
-    python -m llm_synth.exemplar_ab
-    python -m llm_synth.exemplar_ab --rows 300 --output-dir /tmp/ab
-    python -m llm_synth.exemplar_ab --rows 500 --batch 50 --no-generate
+    python -m clin_synth.exemplar_ab
+    python -m clin_synth.exemplar_ab --rows 300 --output-dir /tmp/ab
+    python -m clin_synth.exemplar_ab --rows 500 --batch 50 --no-generate
 """
 
 from __future__ import annotations
@@ -31,8 +31,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import ks_2samp
 
-from llm_synth.config import load_config, get_root
-from llm_synth.generate import generate_synthetic_data
+from clin_synth.config import load_config, get_root
+from clin_synth.generate import generate_synthetic_data
 
 logging.basicConfig(
     level=logging.INFO,

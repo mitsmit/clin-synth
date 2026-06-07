@@ -10,9 +10,9 @@ site-packages those parent-walks land in the wrong place.
 
 resolve_project_root() tries, in order:
 
-  1. LLMSYNTH_ROOT environment variable — explicit override.
+  1. CLINSYNTH_ROOT environment variable — explicit override.
   2. Walk up from the current working directory looking for config.yaml —
-     matches the existing "cd /path/to/project && uvicorn/llm-synth ..."
+     matches the existing "cd /path/to/project && uvicorn/clin-synth ..."
      convention exactly: in a checkout, CWD *is* the project root, so this
      finds config.yaml at depth zero and returns the same path the old
      Path(__file__)-relative computation did.
@@ -33,7 +33,7 @@ from pathlib import Path
 
 
 def resolve_project_root(fallback: Path) -> Path:
-    env_root = os.environ.get("LLMSYNTH_ROOT")
+    env_root = os.environ.get("CLINSYNTH_ROOT")
     if env_root:
         return Path(env_root).resolve()
 

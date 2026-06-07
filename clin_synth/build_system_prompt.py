@@ -1,5 +1,5 @@
 """
-llm_synth/build_system_prompt.py
+clin_synth/build_system_prompt.py
 =================================
 Generate a system prompt for synthetic data generation from:
   - domains/<condition>.yaml              (schema, rules, bounds)
@@ -11,9 +11,9 @@ Output: prompts/system_prompt_<condition>.md
 
 Usage
 -----
-  python -m llm_synth.build_system_prompt heart_failure
-  python -m llm_synth.build_system_prompt diabetes --output prompts/my_prompt.md
-  python -m llm_synth.build_system_prompt heart_failure --top-rules 15 --exemplar-rows 7
+  python -m clin_synth.build_system_prompt heart_failure
+  python -m clin_synth.build_system_prompt diabetes --output prompts/my_prompt.md
+  python -m clin_synth.build_system_prompt heart_failure --top-rules 15 --exemplar-rows 7
 """
 from __future__ import annotations
 
@@ -823,7 +823,7 @@ def _parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    from llm_synth.config import get_root
+    from clin_synth.config import get_root
     args   = _parse_args()
     root   = get_root()
     output = Path(args.output) if args.output else root / "prompts" / f"system_prompt_{args.condition}.md"

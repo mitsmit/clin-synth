@@ -542,7 +542,7 @@ def _init_build_cfg() -> None:
     Call this after set_domain() in generate.py."""
     global _COL_ORDER, _NUMERIC_SLOTS, _CAT_SLOTS, _STRATIFIED_INSTRUCTIONS, _DOMAIN_CFG
     try:
-        from llm_synth.config import load_config
+        from clin_synth.config import load_config
         cfg = load_config()
         _DOMAIN_CFG = cfg
     except Exception:

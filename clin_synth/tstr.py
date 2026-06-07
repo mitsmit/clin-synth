@@ -40,7 +40,7 @@ from sklearn.preprocessing import LabelEncoder, label_binarize
 # ---------------------------------------------------------------------------
 # Paths — resolved from config at import time; overridable for testing
 # ---------------------------------------------------------------------------
-from llm_synth.config import load_config, get_root as _get_root, get_domain_name as _get_domain_name
+from clin_synth.config import load_config, get_root as _get_root, get_domain_name as _get_domain_name
 
 def _tstr_paths() -> tuple[Path, Path, Path]:
     try:
@@ -641,7 +641,7 @@ def distribution_shift_robustness(
 ) -> list:
     """Measure AUROC degradation under Gaussian noise shift on numeric features."""
     from sklearn.metrics import roc_auc_score
-    # from llm_synth.utils.plots import plot_shift_robustness as _plot_shift
+    # from clin_synth.utils.plots import plot_shift_robustness as _plot_shift
 
     numeric_cols = seed_df[feature_cols].select_dtypes(include="number").columns.tolist()
     numeric_idx  = [feature_cols.index(c) for c in numeric_cols]
@@ -707,7 +707,7 @@ def subgroup_auroc_parity(
 ) -> dict:
     """Per-subgroup AUROC parity across Baseline / TSTR / TRTS regimes."""
     from sklearn.metrics import roc_auc_score
-    # from llm_synth.utils.plots import plot_subgroup_heatmap as _plot_heatmap
+    # from clin_synth.utils.plots import plot_subgroup_heatmap as _plot_heatmap
 
     if parity_cols is None:
         parity_cols = ["gender", "race"]
@@ -783,7 +783,7 @@ def run_extended(seed_file: Path | None = None, synth_file: Path | None = None) 
     Logistic Regression and MLP can run alongside HistGradientBoosting.
     """
     from sklearn.preprocessing import OrdinalEncoder
-    # from llm_synth.utils.plots import (
+    # from clin_synth.utils.plots import (
     #     plot_calibration_panel,
     #     plot_roc_divergence_panel,
     #     plot_trts_panel,

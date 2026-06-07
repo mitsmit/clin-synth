@@ -1,5 +1,5 @@
 """
-llm-synth CLI entry point.
+clin-synth CLI entry point.
 
 Subcommands
 -----------
@@ -20,14 +20,14 @@ Output layout (produced by 'run')
 
 Usage
 -----
-  llm-synth run      --seed data/diab_seed.csv --condition diabetes
-  llm-synth profile  --seed data/diab_seed.csv --output processed_data/diabetes/stat_profile/diabetes_stats.json
-  llm-synth dp       --stats processed_data/diabetes/stat_profile/diabetes_stats.json --epsilon 1.0
-  llm-synth generate --stats data/diab_stats_dp.json --rows 5000 --output processed_data/diabetes/synthetic_output.csv
-  llm-synth validate --synthetic processed_data/diabetes/synthetic_output.csv
-  llm-synth tstr
-  llm-synth build-prompt heart_failure
-  llm-synth build-prompt diabetes --top-rules 10 --exemplar-rows 6
+  clin-synth run      --seed data/diab_seed.csv --condition diabetes
+  clin-synth profile  --seed data/diab_seed.csv --output processed_data/diabetes/stat_profile/diabetes_stats.json
+  clin-synth dp       --stats processed_data/diabetes/stat_profile/diabetes_stats.json --epsilon 1.0
+  clin-synth generate --stats data/diab_stats_dp.json --rows 5000 --output processed_data/diabetes/synthetic_output.csv
+  clin-synth validate --synthetic processed_data/diabetes/synthetic_output.csv
+  clin-synth tstr
+  clin-synth build-prompt heart_failure
+  clin-synth build-prompt diabetes --top-rules 10 --exemplar-rows 6
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 def _cmd_run(args: argparse.Namespace) -> None:
-    from llm_synth.config import set_domain, load_config, get_root
+    from clin_synth.config import set_domain, load_config, get_root
     from pathlib import Path
 
     root = get_root()
@@ -104,7 +104,7 @@ def _cmd_run(args: argparse.Namespace) -> None:
 
     # Import pipeline AFTER domain is set — module-level config loads in
     # generate.py / validate.py / tstr.py will pick up the merged config
-    from llm_synth.pipeline import run_pipeline
+    from clin_synth.pipeline import run_pipeline
 
     seed_path = Path(seed_arg)
     if not seed_path.exists():
@@ -125,7 +125,7 @@ def _cmd_run(args: argparse.Namespace) -> None:
 
 
 def _cmd_profile(args: argparse.Namespace) -> None:
-    from llm_synth.seed_statistics import extract_seed_stats
+    from clin_synth.seed_statistics import extract_seed_stats
     from pathlib import Path
 
     out = args.output or str(Path(args.seed).with_suffix("").name + "_stats.json")
@@ -136,7 +136,7 @@ def _cmd_profile(args: argparse.Namespace) -> None:
 def _cmd_dp(args: argparse.Namespace) -> None:
     import json
     from pathlib import Path
-    from llm_synth.dp_statistics import apply_dp
+    from clin_synth.dp_statistics import apply_dp
 
     stats = json.loads(Path(args.stats).read_text(encoding="utf-8"))
     out_path = Path(args.output or args.stats.replace(".json", "_dp.json"))
@@ -146,7 +146,7 @@ def _cmd_dp(args: argparse.Namespace) -> None:
 
 
 def _cmd_generate(args: argparse.Namespace) -> None:
-    from llm_synth.config import set_domain, load_config, get_root
+    from clin_synth.config import set_domain, load_config, get_root
     from pathlib import Path
 
     # Explicit domain flag takes priority; otherwise try to infer from stats / seed filename.
@@ -183,7 +183,7 @@ def _cmd_generate(args: argparse.Namespace) -> None:
     if domain_path:
         set_domain(domain_path)
 
-    from llm_synth.generate import generate_synthetic_data
+    from clin_synth.generate import generate_synthetic_data
 
     cfg     = load_config()
     gen_cfg = cfg.get("generation", {})
@@ -206,10 +206,10 @@ def _cmd_generate(args: argparse.Namespace) -> None:
 
 
 def _cmd_validate(args: argparse.Namespace) -> None:
-    from llm_synth.config import set_domain, load_config, get_root
+    from clin_synth.config import set_domain, load_config, get_root
     if args.domain:
         set_domain(args.domain)
-    from llm_synth.validate import validate_synthetic_data, _print_report
+    from clin_synth.validate import validate_synthetic_data, _print_report
 
     cfg     = load_config()
     val_cfg = cfg.get("validation", {})
@@ -226,16 +226,16 @@ def _cmd_validate(args: argparse.Namespace) -> None:
 
 
 def _cmd_tstr(args: argparse.Namespace) -> None:
-    from llm_synth.config import set_domain
+    from clin_synth.config import set_domain
     if args.domain:
         set_domain(args.domain)
-    from llm_synth.tstr import main as tstr_main
+    from clin_synth.tstr import main as tstr_main
     tstr_main()
 
 
 def _cmd_build_prompt(args: argparse.Namespace) -> None:
-    from llm_synth.config import get_root
-    from llm_synth.build_system_prompt import build_system_prompt
+    from clin_synth.config import get_root
+    from clin_synth.build_system_prompt import build_system_prompt
     from pathlib import Path
 
     root   = get_root()
@@ -254,7 +254,7 @@ def _cmd_build_prompt(args: argparse.Namespace) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        prog="llm-synth",
+        prog="clin-synth",
         description="Statistics-first, privacy-preserving synthetic data generation using LLMs.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

@@ -20,13 +20,13 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-from llm_synth.clinical_plausibility import (
+from clin_synth.clinical_plausibility import (
     check_clinical_plausibility,
     check_rule_based_clinicalplausibility,
     generate_rule_coverage_report,
 )
-# from llm_synth.utils.plots import plot_synthetic_data
-from llm_synth.utils.util import (
+# from clin_synth.utils.plots import plot_synthetic_data
+from clin_synth.utils.util import (
     _gower_encode,
     _gower_nn_dist,
     _is_hash_column,
@@ -36,7 +36,7 @@ from llm_synth.utils.util import (
     compute_psi,
     _print_report,
 )
-from llm_synth.config import load_config, get_root, get_domain_name
+from clin_synth.config import load_config, get_root, get_domain_name
 
 import numpy as np
 import pandas as pd

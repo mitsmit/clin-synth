@@ -12,7 +12,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from llm_synth.config import load_config
+from clin_synth.config import load_config
 
 logger = logging.getLogger(__name__)
 

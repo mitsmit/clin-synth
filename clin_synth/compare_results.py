@@ -12,7 +12,7 @@ import json
 import logging
 from pathlib import Path
 
-from llm_synth.config import get_root
+from clin_synth.config import get_root
 
 logger = logging.getLogger(__name__)
 

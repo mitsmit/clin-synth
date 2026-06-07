@@ -1,6 +1,6 @@
 # Sample Seed Datasets
 
-Small example datasets for getting started with llm-synth.
+Small example datasets for getting started with clin-synth.
 Each file is 500 rows — enough to run the full pipeline and explore outputs.
 To generate at scale, replace with your full seed CSV.
 
@@ -18,7 +18,7 @@ To generate at scale, replace with your full seed CSV.
 
 ```bash
 # Run the full pipeline on the diabetes sample
-llm-synth run \
+clin-synth run \
     --seed data/samples/diabetes_sample.csv \
     --condition diabetes \
     --rows 500

@@ -1,16 +1,16 @@
-"""llm-synth: statistics-first, privacy-preserving synthetic data generation using LLMs."""
+"""clin-synth: statistics-first, privacy-preserving synthetic data generation using LLMs."""
 
 from __future__ import annotations
 
 __version__ = "0.1.0"
 
-from llm_synth.config import load_config, set_domain, get_root
-from llm_synth.pipeline import run_pipeline
-from llm_synth.seed_statistics import extract_seed_stats
-from llm_synth.dp_statistics import apply_dp
-from llm_synth.generate import generate_synthetic_data
-from llm_synth.validate import validate_synthetic_data
-from llm_synth.clinical_plausibility import (
+from clin_synth.config import load_config, set_domain, get_root
+from clin_synth.pipeline import run_pipeline
+from clin_synth.seed_statistics import extract_seed_stats
+from clin_synth.dp_statistics import apply_dp
+from clin_synth.generate import generate_synthetic_data
+from clin_synth.validate import validate_synthetic_data
+from clin_synth.clinical_plausibility import (
     check_clinical_plausibility,
     check_rule_based_clinicalplausibility,
 )

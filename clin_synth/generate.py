@@ -33,15 +33,15 @@ import pandas as pd
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from llm_synth.build_user_message import build_user_message, build_stratified_user_message, _init_build_cfg
-from llm_synth.utils.stratified_sampler import sample_strata, _init_strata_cfg
-from llm_synth.utils.postprocess_utils import (
+from clin_synth.build_user_message import build_user_message, build_stratified_user_message, _init_build_cfg
+from clin_synth.utils.stratified_sampler import sample_strata, _init_strata_cfg
+from clin_synth.utils.postprocess_utils import (
     _enforce_numeric_distributions,
     _enforce_correlations,
     _enforce_strata,
     _init_postprocess_cfg,
 )
-from llm_synth.config import load_config, get_root
+from clin_synth.config import load_config, get_root
 
 _ROOT = get_root()
 load_dotenv(_ROOT / ".env")

@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "llm-synth"
+name = "clin-synth"
 version = "0.1.0"
 description = "Statistics-first, privacy-preserving synthetic data generation using LLMs"
 authors = [{ name = "Smitashree Choudhury" }]
@@ -23,14 +23,14 @@ dependencies = [
 tstr   = ["scikit-learn>=1.4"]
 plots  = ["seaborn>=0.13", "matplotlib>=3.7"]
 dev    = ["pytest>=8.0", "ruff>=0.4"]
-all    = ["llm-synth[tstr,plots,dev]"]
+all    = ["clin-synth[tstr,plots,dev]"]
 
 [project.scripts]
-llm-synth = "llm_synth.cli.run:main"
+clin-synth = "clin_synth.cli.run:main"
 
 [tool.setuptools.packages.find]
 where     = ["."]
-include   = ["llm_synth*"]
+include   = ["clin_synth*"]
 
 [tool.setuptools.package-data]
-llm_synth = ["prompts/*.md"]
+clin_synth = ["prompts/*.md"]

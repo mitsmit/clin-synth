@@ -24,8 +24,8 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-from llm_synth.config import load_config, get_root
-from llm_synth.utils.postprocess_utils import (
+from clin_synth.config import load_config, get_root
+from clin_synth.utils.postprocess_utils import (
     _enforce_numeric_distributions,
     _enforce_correlations,
 )

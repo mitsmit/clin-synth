@@ -53,11 +53,11 @@ validation:
     linkage_risk_threshold: 0.05  # unique linkage rate above this flags re-id risk
 
 # ── Run (pipeline entry-point defaults) ───────────────────────────────────────
-# All parameters for `llm-synth run` can be set here so the pipeline is fully
+# All parameters for `clin-synth run` can be set here so the pipeline is fully
 # reproducible from config alone.  CLI flags override these values when provided.
 #
-# Usage (config-only):   llm-synth run
-# Usage (mixed):         llm-synth run --rows 2000   # overrides run.rows below
+# Usage (config-only):   clin-synth run
+# Usage (mixed):         clin-synth run --rows 2000   # overrides run.rows below
 run:
   seed:       data/diab_seed.csv  # path to seed CSV
   condition:  diabetes            # condition label; auto-discovers domains/<condition>.yaml

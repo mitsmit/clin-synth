@@ -1,6 +1,6 @@
-![llm-synth](assets/llm_synth_logo_grey_crimson.svg)
+![clin-synth](assets/clin_synth_logo_grey_crimson.svg)
 
-# llm-synth : Synthetic Clinical Data with LLM
+# clin-synth : Synthetic Clinical Data with LLM
 
 A statistics-first pipeline that generates realistic synthetic clinical records
 using an LLM as the sampler and a multi-layer validation framework to verify quality.
@@ -27,7 +27,7 @@ OPENAI_API_KEY=sk-...
 
 ```bash
 # Full pipeline — uses the 500-row diabetes sample, no download needed
-llm-synth run \
+clin-synth run \
     --seed data/samples/diabetes_sample.csv \
     --condition diabetes \
     --rows 500
@@ -56,14 +56,14 @@ run:
 Then run with no arguments:
 
 ```bash
-llm-synth run
+clin-synth run
 ```
 
 CLI flags always override config values, so you can mix both:
 
 ```bash
 # Use all config.yaml defaults, but override rows and epsilon for this run
-llm-synth run --rows 2000 --epsilon 0.5
+clin-synth run --rows 2000 --epsilon 0.5
 ```
 
 **Precedence order** (highest → lowest) for each parameter:
@@ -82,18 +82,18 @@ llm-synth run --rows 2000 --epsilon 0.5
 ### Step-by-step
 
 ```bash
-llm-synth profile --seed data/diab_seed.csv
+clin-synth profile --seed data/diab_seed.csv
 
-llm-synth --domain domains/diabetes.yaml dp \
+clin-synth --domain domains/diabetes.yaml dp \
     --stats data/diab_stats.json --epsilon 1.0
 
-llm-synth --domain domains/diabetes.yaml generate \
+clin-synth --domain domains/diabetes.yaml generate \
     --stats data/diab_stats_dp.json --rows 10000
 
-llm-synth --domain domains/diabetes.yaml validate \
+clin-synth --domain domains/diabetes.yaml validate \
     --synthetic processed_data/synthetic_output.csv
 
-llm-synth --domain domains/diabetes.yaml tstr   # optional
+clin-synth --domain domains/diabetes.yaml tstr   # optional
 ```
 
 ---
@@ -141,7 +141,7 @@ The `generate` stage is driven by two distinct prompts, built in very different 
 
 | | System prompt | Per-batch user message |
 |---|---|---|
-| **Built by** | `build_system_prompt.py`, run via `llm-synth build-prompt <condition>` | `build_user_message.py`, called automatically inside `generate`'s batch loop |
+| **Built by** | `build_system_prompt.py`, run via `clin-synth build-prompt <condition>` | `build_user_message.py`, called automatically inside `generate`'s batch loop |
 | **When** | Explicitly, ahead of time — a one-off step you (re-)run when inputs change | Freshly, for every single batch of every `generate` run — no manual step |
 | **Driven by** | `condition` → `domains/<condition>.yaml` + stats JSON (from `profile`) + seed CSV exemplar rows + mined soft-rule CSVs | DP-stats JSON (categorical/numeric distributions, correlations) + a rotating archetype + the batch counter |
 | **Output** | Written to disk: `prompts/system_prompt_<condition>.md` | Ephemeral — composed in memory and sent straight to the LLM; never saved |
@@ -150,7 +150,7 @@ The `generate` stage is driven by two distinct prompts, built in very different 
 Generate (or regenerate) the system prompt for a condition with:
 
 ```bash
-llm-synth build-prompt <condition> [--top-rules 15] [--exemplar-rows 7]
+clin-synth build-prompt <condition> [--top-rules 15] [--exemplar-rows 7]
 ```
 
 This gives you a consistent, **condition- and seed-driven** baseline assembled
@@ -190,8 +190,8 @@ Edit `domains/chf.yaml` and update:
 ### 3 — Generate the system prompt, then refine it
 
 ```bash
-llm-synth profile --seed data/chf_seed.csv --output processed_data/chf_stats.json
-llm-synth build-prompt chf
+clin-synth profile --seed data/chf_seed.csv --output processed_data/chf_stats.json
+clin-synth build-prompt chf
 ```
 
 This builds `prompts/system_prompt_chf.md` from `domains/chf.yaml`, the seed
@@ -203,7 +203,7 @@ generator can't infer from statistics alone.
 ### Run
 
 ```bash
-llm-synth run \
+clin-synth run \
     --seed data/chf_seed.csv \
     --condition chf \
     --rows 5000
@@ -215,7 +215,7 @@ llm-synth run \
 |---|---|
 | `data/chf_seed.csv` | **Add** your seed dataset |
 | `domains/chf.yaml` | **Add** domain config (copy from diabetes) |
-| `prompts/system_prompt_chf.md` | **Generate** via `llm-synth build-prompt chf`, then refine |
+| `prompts/system_prompt_chf.md` | **Generate** via `clin-synth build-prompt chf`, then refine |
 | `config.yaml` | No change needed |
 
 ---
@@ -223,7 +223,7 @@ llm-synth run \
 ## CLI Reference
 
 ```bash
-llm-synth run [--seed <path>] [--condition <name>] [options]
+clin-synth run [--seed <path>] [--condition <name>] [options]
 ```
 
 | Argument | Default | Description |
