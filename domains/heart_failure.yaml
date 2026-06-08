@@ -261,3 +261,64 @@ clinical_plausibility:
       metric_column:      serum_sodium
       metric_type:        mean
       expected_direction: "<="
+
+# ── Association rule mining (clin_synth.ruleex) ──────────────────────────────
+# Mines "hard" rules (near-deterministic clinical facts, fed into validation /
+# clinical-plausibility checks) and "soft" rules (probabilistic tendencies,
+# turned into LLM system-prompt guidance) from the binned seed dataset.
+arm_rules:
+  # Discretization rules for ARM mining — categorical columns (from `schema.
+  # categorical_columns` above) map straight to "<col>_<value>" features;
+  # continuous columns below are binned into clinically meaningful categories
+  # via pd.cut ("cut", fixed bin edges) or pd.qcut ("qcut", quantile split).
+  binning:
+    continuous:
+      # age: min=40 in this dataset; 'adult' for early-onset HF (40-45), not 'young'
+      - column: age
+        method: cut
+        bins:   [0, 45, 60, 75, 120]
+        labels: [adult, middle_age, senior, elderly]
+
+      # ejection_fraction: split at 40 to separate HFrEF (30-40%) from HFmrEF (40-50%) from HFpEF (>50%)
+      - column: ejection_fraction
+        method: cut
+        bins:   [0, 30, 40, 50, 100]
+        labels: [severe_ef, reduced_ef, mildly_reduced_ef, preserved_ef]
+
+      - column: serum_creatinine
+        method: cut
+        bins:   [0, 1.2, 2.0, 100]
+        labels: [normal_creatinine, elevated_creatinine, high_creatinine]
+
+      # serum_sodium: max=148 in this dataset; only 2 patients >145, so use a binary hyponatremia split
+      - column: serum_sodium
+        method: cut
+        bins:   [0, 135, 200]
+        labels: [low_sodium, normal_sodium]
+
+      - column: creatinine_phosphokinase
+        method: cut
+        bins:   [0, 120, 400, 10000]
+        labels: [normal_cpk, elevated_cpk, high_cpk]
+
+      - column: platelets
+        method: qcut
+        q:      3
+        labels: [low_platelets, med_platelets, high_platelets]
+
+      - column: time
+        method: qcut
+        q:      3
+        labels: [short_followup, med_followup, long_followup]
+
+  hard_rules:
+    min_support:            0.20
+    min_confidence:         0.95
+    support_search_ladder:  [0.50, 0.40, 0.30, 0.20]
+    fpgrowth_min_threshold: 0.5
+
+  soft_rules:
+    max_rules:                  15
+    confidence_ceiling:         0.9999
+    fallback_confidence_floor:  0.70
+    max_repeats_per_consequent: 2

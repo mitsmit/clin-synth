@@ -1,9 +1,5 @@
-import logging
-
 import pandas as pd
 import ast
-
-logger = logging.getLogger(__name__)
 
 def parse_frozenset_string(set_string):
     """
@@ -88,7 +84,7 @@ def generate_rule_coverage_report(synthetic_data_path, rules_path):
     passed_rows = []
     failed_rows_with_feedback = []
     
-    logger.info("Analyzing %d synthetic rows against %d rules...", len(syn_df), len(rules_df))
+    print(f"Analyzing {len(syn_df)} synthetic rows against {len(rules_df)} rules...")
     
     for idx, raw_row in syn_df.iterrows():
         row_features = bin_synthetic_row(raw_row.to_dict())
@@ -128,27 +124,27 @@ def generate_rule_coverage_report(synthetic_data_path, rules_path):
     return pd.DataFrame(passed_rows), failed_rows_with_feedback, coverage_df
 
 if __name__ == "__main__":
-    synthetic_file = "./processed_data/diabetes/synthetic_output.csv"
-    rules_file = "./domains/diabetes/hard_rules.csv"
+    synthetic_file = "./data/diab_synthetic_output.csv"
+    rules_file = "./output/automined_hard_rules.csv"
     
     try:
         clean_df, failed_queue, coverage_report = generate_rule_coverage_report(synthetic_file, rules_file)
-
-        logger.info("\n" + "═"*70)
-        logger.info(" GLOBAL CLINICAL RULE COVERAGE REPORT (EXPLAINABILITY CONSOLE)")
-        logger.info("═"*70)
-
+        
+        print("\n" + "═"*70)
+        print(" GLOBAL CLINICAL RULE COVERAGE REPORT (EXPLAINABILITY CONSOLE)")
+        print("═"*70)
+        
         # Format and display the aggregated table clearly in the console
         pd.set_option('display.max_colwidth', None)
         pd.set_option('display.width', 1000)
-
+        
         # Only show columns useful for an auditor review
-        logger.info(coverage_report[['rule_id', 'rule_description', 'times_triggered', 'times_passed', 'times_failed']].to_string(index=False))
-        logger.info("═"*70)
-
+        print(coverage_report[['rule_id', 'rule_description', 'times_triggered', 'times_passed', 'times_failed']].to_string(index=False))
+        print("═"*70)
+        
         # Save summary report out for compliance logging
         coverage_report.to_csv("./data/clinical_rule_coverage_summary.csv", index=False)
-        logger.info("Summary report compiled and saved to './data/clinical_rule_coverage_summary.csv'")
-
+        print(f"Summary report compiled and saved to './data/clinical_rule_coverage_summary.csv'")
+        
     except FileNotFoundError:
-        logger.error("Error: Missing validation targets. Ensure '%s' and '%s' exist.", synthetic_file, rules_file)
+        print(f"Error: Missing validation targets. Ensure '{synthetic_file}' and '{rules_file}' exist.")

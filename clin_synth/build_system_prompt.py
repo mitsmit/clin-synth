@@ -5,7 +5,7 @@ Generate a system prompt for synthetic data generation from:
   - domains/<condition>.yaml              (schema, rules, bounds)
   - processed_data/.../stat_profile/...  (column stats JSON)
   - data/<seed>.csv                       (seed rows for exemplars)
-  - domains/<condition>*soft_rules.csv    (mined association rules)
+  - domains/<condition>/soft_rules.csv    (mined association rules)
 
 Output: prompts/system_prompt_<condition>.md
 
@@ -63,10 +63,10 @@ def _load_seed(root: Path, domain: dict) -> pd.DataFrame | None:
 
 
 def _load_soft_rules(root: Path, condition: str) -> pd.DataFrame | None:
-    candidates = sorted((root / "domains").glob(f"{condition}*soft_rules.csv"))
-    if not candidates:
+    path = root / "domains" / condition / "soft_rules.csv"
+    if not path.exists():
         return None
-    return pd.read_csv(candidates[0])
+    return pd.read_csv(path)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
