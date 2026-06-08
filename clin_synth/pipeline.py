@@ -152,6 +152,44 @@ def _run_tstr(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Rule mining (clin_synth.ruleex)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _mine_rules_if_supported(seed_file: str, condition: str, slug: str) -> None:
+    """
+    Mine hard/soft association rules for the seed dataset, alongside profiling.
+
+    Writes domains/<slug>/hard_rules.csv (read by validate's association-rule
+    coverage check) and domains/<slug>/soft_rules.csv (read by build-prompt's
+    CLINICAL BEHAVIOR NARRATIVES section) — both are picked up automatically
+    once present, no further wiring required.
+
+    This is best-effort enrichment, not a required stage, and fully domain-driven:
+    mining only runs if the active domain config has an `arm_rules.binning`
+    section (see domains/heart_failure.yaml). Conditions without one are skipped
+    with a warning rather than failing the pipeline.
+    """
+    from clin_synth.config import load_config
+    from clin_synth.ruleex import mine_rules
+
+    arm_cfg = load_config().get("arm_rules")
+    if not arm_cfg or not arm_cfg.get("binning"):
+        _warn(f"Rule mining skipped — domain config for '{condition}' has no 'arm_rules.binning' section.")
+        return
+
+    t0 = time.time()
+    try:
+        hard_df, soft_df, _ = mine_rules(seed_csv=seed_file, condition=condition)
+    except (ValueError, RuntimeError) as exc:
+        _warn(f"Rule mining failed — {exc}")
+        return
+
+    _ok(f"Mined {len(hard_df)} hard rules, {len(soft_df)} soft rules  [{_elapsed(t0)}]")
+    _ok(f"Hard rules saved   → domains/{slug}/hard_rules.csv  (used by validate)")
+    _ok(f"Soft rules saved   → domains/{slug}/soft_rules.csv  (used by build-prompt)")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Main pipeline
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -197,6 +235,8 @@ def run_pipeline(
     n_cols = seed_stats["meta"]["n_columns"]
     _ok(f"Profile extracted  ({n_rows:,} rows, {n_cols} columns)  [{_elapsed(t0)}]")
     _ok(f"Stats saved        → {stats_path}")
+
+    _mine_rules_if_supported(seed_file, condition, slug)
 
     # ── Stage 2: Apply differential privacy ──────────────────────────────────
     _banner(f"[2/5] Applying differential privacy  (ε = {epsilon})")

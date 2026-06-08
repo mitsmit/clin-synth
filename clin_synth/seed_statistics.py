@@ -23,7 +23,11 @@ def _infer_col_type(series: pd.Series) -> str:
     if pd.api.types.is_object_dtype(series) or isinstance(series.dtype, pd.StringDtype):
         sample = series.dropna().head(50)
         try:
-            pd.to_datetime(sample, infer_datetime_format=True)
+            with warnings.catch_warnings():
+                # Non-date columns (the common case) raise/warn here; both are
+                # expected probing noise, not something the caller should see.
+                warnings.simplefilter("ignore", UserWarning)
+                pd.to_datetime(sample)
             return "datetime"
         except Exception:
             pass

@@ -1,0 +1,16 @@
+antecedents,consequents,support,confidence
+frozenset({'smoking_1'}),frozenset({'sex_1'}),0.3076923076923077,0.9583333333333334
+frozenset({'sex_0'}),frozenset({'smoking_0'}),0.3377926421404682,0.9619047619047619
+"frozenset({'serum_sodium_normal_sodium', 'DEATH_EVENT_0'})",frozenset({'serum_creatinine_normal_creatinine'}),0.411371237458194,0.8092105263157895
+"frozenset({'serum_creatinine_normal_creatinine', 'anaemia_0'})",frozenset({'DEATH_EVENT_0'}),0.3076923076923077,0.8141592920353983
+"frozenset({'serum_creatinine_normal_creatinine', 'diabetes_0'})",frozenset({'serum_sodium_normal_sodium'}),0.3076923076923077,0.8
+"frozenset({'serum_creatinine_normal_creatinine', 'smoking_0'})",frozenset({'DEATH_EVENT_0'}),0.35785953177257523,0.8045112781954887
+"frozenset({'DEATH_EVENT_0', 'smoking_0'})",frozenset({'serum_creatinine_normal_creatinine'}),0.35785953177257523,0.781021897810219
+"frozenset({'serum_creatinine_normal_creatinine', 'DEATH_EVENT_0'})",frozenset({'serum_sodium_normal_sodium'}),0.411371237458194,0.7884615384615384
+frozenset({'diabetes_1'}),frozenset({'smoking_0'}),0.3177257525083612,0.76
+frozenset({'sex_1'}),frozenset({'diabetes_0'}),0.41471571906354515,0.6391752577319587
+frozenset({'diabetes_0'}),frozenset({'sex_1'}),0.41471571906354515,0.7126436781609196
+"frozenset({'sex_1', 'DEATH_EVENT_0'})",frozenset({'high_blood_pressure_0'}),0.3110367892976589,0.7045454545454546
+frozenset({'sex_1'}),frozenset({'anaemia_0'}),0.391304347826087,0.6030927835051546
+frozenset({'sex_1'}),frozenset({'high_blood_pressure_0'}),0.44481605351170567,0.6855670103092784
+frozenset({'DEATH_EVENT_0'}),frozenset({'anaemia_0'}),0.4013377926421405,0.5911330049261084

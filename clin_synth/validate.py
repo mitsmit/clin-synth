@@ -1142,7 +1142,7 @@ def _build_plausibility_html(plausibility_data: dict) -> str:
     if cov.get("skipped"):
         cov_body = (
             f'<p style="color:#e67e22">⚠ {cov.get("reason","")}</p>'
-            "<p>Populate the domain's <code>_clin_hard_rules.csv</code> to enable this check.</p>"
+            "<p>Populate <code>domains/&lt;condition&gt;/hard_rules.csv</code> to enable this check.</p>"
         )
     else:
         cov_body = (
@@ -1282,7 +1282,7 @@ def validate_synthetic_data(
     # ── Association-rule coverage ─────────────────────────────────────────
     logger.info("Running association-rule coverage check...")
     _domain_name = get_domain_name()
-    _rules_csv   = _ROOT / "domains" / f"{_domain_name}_clin_hard_rules.csv" if _domain_name else None
+    _rules_csv   = _ROOT / "domains" / _domain_name / "hard_rules.csv" if _domain_name else None
     coverage_result: dict = {}
     if _rules_csv and _rules_csv.exists() and _rules_csv.stat().st_size > 0:
         _passed_df, _failed_queue, _coverage_df = generate_rule_coverage_report(

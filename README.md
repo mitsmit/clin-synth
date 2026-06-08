@@ -135,6 +135,68 @@ Pipeline settings are shared across all conditions. Domain configs are swapped p
 
 ---
 
+## Mining Clinical Rules (ARM)
+
+`clin-synth run` mines **association rules** from the seed dataset
+automatically, right alongside `profile` (stage 1/5) — no separate step needed
+for supported conditions:
+
+```
+[1/5] Extracting seed statistics
+  ✓ Profile extracted  (299 rows, 13 columns)
+  ✓ Stats saved        → processed_data/heart_failure/stat_profile/heart_failure_stats.json
+  ✓ Mined 4 hard rules, 12 soft rules
+  ✓ Hard rules saved   → domains/heart_failure/hard_rules.csv  (used by validate)
+  ✓ Soft rules saved   → domains/heart_failure/soft_rules.csv  (used by build-prompt)
+```
+
+Both CSVs land in a per-domain folder next to the domain config
+(`domains/<condition>/`), where `validate` and `build-prompt` already look for
+them — so once mining has run for a condition, re-running `build-prompt` or
+`validate` for it picks the rules up with **no extra wiring**. Re-mining
+happens on every `clin-synth run`, so rules stay in sync whenever the seed
+data changes.
+
+ARM mining is fully domain-driven: it runs for any condition whose domain YAML
+has an `arm_rules.binning` section (categorical columns map straight to
+`<col>_<value>` features; continuous columns are discretized via `pd.cut`/
+`pd.qcut` per the `binning.continuous` specs — see `domains/heart_failure.yaml`
+for a worked example). Conditions without that section are skipped with a
+warning (`Rule mining skipped — domain config for '<condition>' has no
+'arm_rules.binning' section.`) rather than failing the run. To extend support
+to a new condition, add `arm_rules: {binning, hard_rules, soft_rules}` to its
+domain YAML — no code changes needed.
+
+To mine rules outside of a full pipeline run (e.g. to inspect them, or refresh
+just the rule files without regenerating data):
+
+```python
+from clin_synth import set_domain, get_root
+from clin_synth.ruleex import mine_rules
+
+set_domain(get_root() / "domains" / "heart_failure.yaml")
+hard_df, soft_df, narrative_block = mine_rules(
+    seed_csv="data/heart_failure_seed.csv",
+    condition="heart_failure",
+)
+```
+
+or as a script:
+
+```bash
+python -m clin_synth.ruleex.arm heart_failure data/heart_failure_seed.csv
+```
+
+`mine_rules` discovers two tiers of rules via FP-Growth association mining
+(thresholds and binning configured under `arm_rules:` in the domain YAML):
+
+| Tier | What it is | Where it's written | Consumed by |
+|---|---|---|---|
+| **Hard rules** | High-support / high-confidence rules treated as near-deterministic clinical facts | `domains/<condition>/hard_rules.csv` | `validate`'s association-rule coverage check (`clin_synth.utils.clin_hard_rule_val`) |
+| **Soft rules** | Lower-confidence probabilistic tendencies (co-morbidities, prescribing patterns) | `domains/<condition>/soft_rules.csv` | `build-prompt`'s CLINICAL BEHAVIOR NARRATIVES section |
+
+---
+
 ## Prompt Generation
 
 The `generate` stage is driven by two distinct prompts, built in very different ways:
@@ -143,7 +205,7 @@ The `generate` stage is driven by two distinct prompts, built in very different 
 |---|---|---|
 | **Built by** | `build_system_prompt.py`, run via `clin-synth build-prompt <condition>` | `build_user_message.py`, called automatically inside `generate`'s batch loop |
 | **When** | Explicitly, ahead of time — a one-off step you (re-)run when inputs change | Freshly, for every single batch of every `generate` run — no manual step |
-| **Driven by** | `condition` → `domains/<condition>.yaml` + stats JSON (from `profile`) + seed CSV exemplar rows + mined soft-rule CSVs | DP-stats JSON (categorical/numeric distributions, correlations) + a rotating archetype + the batch counter |
+| **Driven by** | `condition` → `domains/<condition>.yaml` + stats JSON (from `profile`) + seed CSV exemplar rows + mined soft-rule CSVs (see [Mining Clinical Rules](#mining-clinical-rules-arm)) | DP-stats JSON (categorical/numeric distributions, correlations) + a rotating archetype + the batch counter |
 | **Output** | Written to disk: `prompts/system_prompt_<condition>.md` | Ephemeral — composed in memory and sent straight to the LLM; never saved |
 | **Format** | Fixed sections: schema & missingness, clinical rules, exemplar rows, etc. | Fixed sections: categorical/numeric distributions → critical reminders → correlations → archetype instruction → diversity instruction → "Generate N rows. Batch X of Y." |
 
